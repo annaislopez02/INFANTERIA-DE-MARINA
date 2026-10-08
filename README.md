@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TacNav IM Chile - Web MVP</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <h1>TacNav V2</h1>
+        <div class="header-actions">
+            <button id="btn-compass" class="icon-btn" title="Brújula Táctica">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                </svg>
+            </button>
+            <button id="btn-screenshot" class="icon-btn" title="Captura Táctica">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                    <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+            </button>
+            <button id="btn-route" class="icon-btn" title="Modo Ruta" style="color: #ffffff;">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+                    <line x1="9" y1="3" x2="9" y2="18"></line>
+                    <line x1="15" y1="6" x2="15" y2="21"></line>
+                </svg>
+            </button>
+            <button id="btn-report" class="icon-btn" title="Generar Informe">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+            </button>
+            <button id="btn-layer" class="icon-btn" title="Capas">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                </svg>
+            </button>
+            <button id="btn-location" class="icon-btn" title="Mi Ubicación">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="map-container">
+        <div id="map"></div>
+
+        <div class="tactical-hud">
+            <div class="hud-item">
+                <span class="hud-label">LAT</span>
+                <span class="hud-value" id="hud-lat">-33.04560</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">LON</span>
+                <span class="hud-value" id="hud-lon">-71.61140</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">MSR</span>
+                <span class="hud-value" id="hud-hdg">0.0&deg;</span>
+            </div>
+        </div>
+    </main>
+
+    <button id="btn-add-wp" class="fab">
+        <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        <div class="fab-plus">+</div>
+    </button>
+
+    <!-- Modal for adding Waypoint details -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal">
+            <h2>Nuevo Waypoint Táctico</h2>
+
+            <div class="form-group">
+                <label>Nombre / Etiqueta</label>
+                <input type="text" id="wp-label" placeholder="Ej: Puesto de Mando" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label>Simbología Militar (APP-6)</label>
+                <select id="wp-symbology">
+                    <option value="infantry">Infantería (Cruz)</option>
+                    <option value="armor">Blindados (Óvalo)</option>
+                    <option value="artillery">Artillería (Punto)</option>
+                    <option value="generic">Punto Genérico</option>
+                </select>
+
+                <label style="margin-top:8px;">Clasificación</label>
+                <select id="wp-classification">
+                    <option value="friendly">Amigo (Azul)</option>
+                    <option value="hostile">Hostil (Rojo)</option>
+                    <option value="neutral">Neutral (Verde)</option>
+                    <option value="unknown">Desconocido (Ambar)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Comentario Táctico</label>
+                <textarea id="wp-comment" rows="3" placeholder="Información relevante de la zona..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Evidencia Fotográfica</label>
+                <input type="file" id="wp-photo" accept="image/*">
+                <img id="photo-preview" class="hidden" alt="Vista previa">
+            </div>
+
+            <div class="modal-actions">
+                <button id="btn-cancel" class="btn btn-secondary">Cancelar</button>
+                <button id="btn-save" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compass Dashboard Modal -->
+    <div id="compass-overlay" class="modal-overlay hidden">
+        <div class="modal" style="text-align:center; max-width: 320px;">
+            <h2>Brújula Táctica NAV</h2>
+
+            <div style="position:relative; width:200px; height:200px; margin:20px auto;">
+                <svg id="compass-svg" viewBox="0 0 100 100" style="transition: transform 0.1s linear;">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#fff" stroke-width="2"></circle>
+                    <polygon points="50,10 60,50 40,50" fill="#e53935"></polygon>
+                    <polygon points="50,90 60,50 40,50" fill="#fff"></polygon>
+                    <!-- Degree markings could go here -->
+                </svg>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 id="compass-heading-text" style="color:#ffc107; font-size:32px;">000°</h3>
+                <p>Marcación Verdadera (True North)</p>
+                <div
+                    style="display:flex; justify-content:space-around; margin-top:10px; color:#aaa; font-family:monospace;">
+                    <span id="compass-pitch">PCH: 0°</span>
+                    <span id="compass-roll">RLL: 0°</span>
+                </div>
+            </div>
+
+            <div class="modal-actions" style="justify-content:center;">
+                <button id="btn-close-compass" class="btn btn-secondary">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
+    <script src="js/data/db.js"></script>
+    <script src="js/domain/dtg.js"></script>
+    <script src="js/domain/sensors.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="js/presentation/compass_controller.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
